@@ -1,92 +1,78 @@
-﻿using ClassIsland.Core.Abstractions.Services;
-using ClassIsland.Shared.Interfaces;
-using ClassIsland.Shared.Models.Notification;
-using Microsoft.Extensions.Hosting;
-using MaterialDesignThemes.Wpf;
-using cn.lixiaotuan.notifyisland.Controls;
-using System.Windows.Controls;
-using System.Windows;
+using ClassIsland.Core.Abstractions.Services.NotificationProviders;
+using ClassIsland.Core.Attributes;
+using ClassIsland.Core.Models.Notification;
+using cn.lixiaotuan.notifyisland2.Services.NotificationAPIServer;
 
-namespace cn.lixiaotuan.notifyisland.Services.NotificationProviders;
+namespace cn.lixiaotuan.notifyisland2.Services.NotificationProviders;
 
-public class APINotificationProvider : INotificationProvider, IHostedService
+[NotificationProviderInfo("534B80F5-8775-A978-95A3-F6A7BC5A1166", "API提醒", "Webhook", "通过HTTP接口触发的提醒。")]
+public class APINotificationProvider : NotificationProviderBase
 {
-    public string Name { get; set; } = "API提醒";
-    public string Description { get; set; } = "通过HTTP接口触发的提醒。";
-    public Guid ProviderGuid { get; set; } = new Guid("534B80F5-8775-A978-95A3-F6A7BC5A1166");
-    public object? SettingsElement { get; set; }
-    public object? IconElement { get; set; } = new PackIcon()
-    {
-        Kind = PackIconKind.Webhook,
-        Width = 24,
-        Height = 24
-    };
-
     public Plugin Plugin { get; }
 
-    private INotificationHostService NotificationHostService { get; }
+    private CancellationTokenSource? _debounceCts;
 
-    public APINotificationProvider(INotificationHostService notificationHostService, Plugin plugin)
+    public APINotificationProvider(Plugin plugin)
     {
         Plugin = plugin;
-        NotificationHostService = notificationHostService;
-        NotificationHostService.RegisterNotificationProvider(this);
+        if (Plugin.Settings.Enabled) RestartServer();
+        Plugin.Settings.PropertyChanged += OnSettingsChanged;
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken) {
-        if (Plugin.Settings.Enabled) {
-            NotificationAPIServer.NotificationAPIServer.Current ??= new NotificationAPIServer.NotificationAPIServer(
-                "http://"+Plugin.Settings.Host+":"+Plugin.Settings.Port.ToString()+"/",Plugin.Settings.Token);
-            NotificationAPIServer.NotificationAPIServer.Current.NotificationReceived += NotificationAPIOnReceived;
-        }
-        Plugin.Settings.PropertyChanged += (s, e) =>
-        {
-            if (NotificationAPIServer.NotificationAPIServer.Current != null)
-            {
-                NotificationAPIServer.NotificationAPIServer.Current.NotificationReceived -= NotificationAPIOnReceived;
-                NotificationAPIServer.NotificationAPIServer.Current?.Dispose();
-            }
-            if (Plugin.Settings.Enabled)
-            {
-                NotificationAPIServer.NotificationAPIServer.Current ??= new NotificationAPIServer.NotificationAPIServer(
-                    "http://" + Plugin.Settings.Host + ":" + Plugin.Settings.Port.ToString() + "/",Plugin.Settings.Token);
-                NotificationAPIServer.NotificationAPIServer.Current.NotificationReceived += NotificationAPIOnReceived;
-            }
-        };
+    private async void OnSettingsChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        _debounceCts?.Cancel();
+        _debounceCts = new CancellationTokenSource();
+        var token = _debounceCts.Token;
+        try { await Task.Delay(500, token); }
+        catch (TaskCanceledException) { return; }
+
+        if (Plugin.Settings.Enabled) RestartServer();
+        else StopServer();
     }
-    
-    public async Task StopAsync(CancellationToken cancellationToken) {
+
+    private void RestartServer()
+    {
+        StopServer();
+        if (string.IsNullOrEmpty(Plugin.Settings.Host)) return;
+        if (Plugin.Settings.Port is < 1 or > 65535) return;
+        if (!Plugin.Settings.Enabled) return;
+
+        var url = $"http://{Plugin.Settings.Host}:{Plugin.Settings.Port}/";
+        var server = new NotificationAPIServer.NotificationAPIServer(url, Plugin.Settings.Token);
+        NotificationAPIServer.NotificationAPIServer.Current = server;
+        server.NotificationReceived += OnNotificationReceived;
+    }
+
+    private void StopServer()
+    {
         if (NotificationAPIServer.NotificationAPIServer.Current != null)
         {
-            NotificationAPIServer.NotificationAPIServer.Current.NotificationReceived -= NotificationAPIOnReceived;
-            NotificationAPIServer.NotificationAPIServer.Current?.Dispose();
+            NotificationAPIServer.NotificationAPIServer.Current.NotificationReceived -= OnNotificationReceived;
+            NotificationAPIServer.NotificationAPIServer.Current.Dispose();
         }
     }
 
-    private void NotificationAPIOnReceived(object? sender, NotificationAPIServer.NotificationReceivedEventArgs e)
+    private void OnNotificationReceived(object? sender, NotificationReceivedEventArgs e)
     {
-        NotificationHostService.ShowNotification(new NotificationRequest()
+        var n = e.Notification;
+        ShowNotification(new NotificationRequest
         {
-            MaskContent = new NotificationMaskContent()
+            MaskContent = NotificationContent.CreateTwoIconsMask(
+                n.title,
+                hasRightIcon: false,
+                factory: c =>
+                {
+                    c.Duration = TimeSpan.FromSeconds(n.title_duration);
+                    c.SpeechContent = n.title_voice ?? n.title;
+                    c.IsSpeechEnabled = true;
+                }),
+            OverlayContent = NotificationContent.CreateSimpleTextContent(n.content, c =>
             {
-                MaskContent = e.notification.title
-            },
-            MaskDuration = TimeSpan.FromSeconds(e.notification.title_duration),
-            OverlayContent = new TextBlock()
-            {
-                Text = e.notification.content,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-            },
-            OverlayDuration = TimeSpan.FromSeconds(e.notification.content_duration),
-            MaskSpeechContent = e.notification.title_voice ?? e.notification.title,
-            OverlaySpeechContent = e.notification.content_voice ?? e.notification.content,
-            RequestNotificationSettings = new ClassIsland.Shared.Models.Notification.NotificationSettings()
-            {
-                IsSettingsEnabled = true,
-                IsNotificationSoundEnabled = e.notification.sound_enabled,
-                IsNotificationEffectEnabled = e.notification.effect_enabled
-            }
+                c.Duration = TimeSpan.FromSeconds(n.content_duration);
+                c.SpeechContent = n.content_voice ?? n.content;
+                c.IsSpeechEnabled = true;
+            }),
         });
     }
 }

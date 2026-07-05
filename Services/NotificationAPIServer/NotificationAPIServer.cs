@@ -1,136 +1,123 @@
-﻿
 using System.IO;
 using System.Net;
 using System.Text.Json;
 
-namespace cn.lixiaotuan.notifyisland.Services.NotificationAPIServer;
+namespace cn.lixiaotuan.notifyisland2.Services.NotificationAPIServer;
 
 public class Notification
 {
-    public string title { get; set; }
+    public string title { get; set; } = "";
     public int title_duration { get; set; }
-    public string content { get; set; }
+    public string content { get; set; } = "";
     public int content_duration { get; set; }
-    public string title_voice { get; set; }
-    public string content_voice  { get; set; }
+    public string title_voice { get; set; } = "";
+    public string content_voice { get; set; } = "";
     public bool sound_enabled { get; set; }
     public bool effect_enabled { get; set; }
 }
 
 public class NotificationReceivedEventArgs : EventArgs
 {
-    public Notification notification { get; set; }
+    public required Notification Notification { get; set; }
 }
 
-public class NotificationAPIServer: IDisposable
+public class NotificationAPIServer : IDisposable
 {
     public static NotificationAPIServer? Current { get; set; }
     public event EventHandler<NotificationReceivedEventArgs>? NotificationReceived;
-    private readonly HttpListener _listener;
-    private readonly string _url;
+
+    private readonly HttpListener _httpListener;
+    private readonly string _prefixUrl;
     private readonly string _token;
 
-    public NotificationAPIServer(string url = "http://0.0.0.0:1379/", string token = "")
+    public NotificationAPIServer(string url = "http://localhost:1379/", string token = "")
     {
-        _url = url.Replace("0.0.0.0","*").Replace("[::]","*");
+        _prefixUrl = url.Replace("0.0.0.0", "*").Replace("[::]", "*");
         _token = token;
-        _listener = new HttpListener();
-        _listener.Prefixes.Add(_url);
+        _httpListener = new HttpListener();
+        _httpListener.Prefixes.Add(_prefixUrl);
         Start();
     }
 
-    public void Start()
+    private void Start()
     {
-        _listener.Start();
-        ListenAsync();
+        try { _httpListener.Start(); ListenAsync(); }
+        catch (HttpListenerException) { }
     }
 
-    public void Stop()
+    private void Stop()
     {
-        _listener.Stop();
+        try { _httpListener.Stop(); } catch { }
     }
 
     private async void ListenAsync()
-    { 
-        while (_listener.IsListening)
+    {
+        var enc = System.Text.Encoding.UTF8;
+        while (_httpListener.IsListening)
         {
-            HttpListenerContext Context;
-            try
+            HttpListenerContext ctx;
+            try { ctx = await _httpListener.GetContextAsync(); }
+            catch (HttpListenerException) { break; }
+            catch (ObjectDisposedException) { break; }
+            catch { continue; }
+
+            var req = ctx.Request;
+            var res = ctx.Response;
+            res.ContentType = "application/json";
+            res.ContentEncoding = enc;
+
+            if (req.Url?.LocalPath != "/api/notify")
             {
-                Context = await _listener.GetContextAsync();
-            } catch { continue; }
-            var Request = Context.Request;
-            var Response = Context.Response;
-            Response.ContentType = "application/json";
-            Response.ContentEncoding = System.Text.Encoding.UTF8;
-            if (!(Request.Url.LocalPath == "/api/notify"))
-            {
-                Response.StatusCode = (int)HttpStatusCode.NotFound;
-                await Response.OutputStream.WriteAsync(System.Text.Encoding.UTF8.GetBytes("{\"success\":false,\"status\":-404,\"message\":\"[-404]API端点不存在\"}"));
-                Response.Close();
-                continue;
+                res.StatusCode = 404;
+                await res.OutputStream.WriteAsync(enc.GetBytes("{\"success\":false,\"status\":-404}"));
+                res.Close(); continue;
             }
-            if (!(Request.HttpMethod == "POST"))
+
+            if (req.HttpMethod != "POST")
             {
-                Response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
-                await Response.OutputStream.WriteAsync(System.Text.Encoding.UTF8.GetBytes("{\"success\":false,\"status\":-405,\"message\":\"[-405]API端点仅允许POST请求\"}"));
-                Response.Close();
-                continue;
+                res.StatusCode = 405;
+                await res.OutputStream.WriteAsync(enc.GetBytes("{\"success\":false,\"status\":-405}"));
+                res.Close(); continue;
             }
-            if (!(Request.ContentType == "application/json"||Request.ContentType == "text/json"||Request.ContentType =="raw"||Request.ContentType=="text/plain"))
+
+            if (!string.IsNullOrEmpty(_token))
             {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                await Response.OutputStream.WriteAsync(System.Text.Encoding.UTF8.GetBytes("{\"success\":false,\"status\":-400,\"message\":\"[-400]传入内容应为JSON格式\"}"));
-                Response.Close();
-                continue;
-            }
-            if (!String.IsNullOrEmpty(_token))
-            {
-                if (String.IsNullOrEmpty(Request.Headers.Get("Authorization")))
+                var ah = req.Headers.Get("Authorization");
+                if (string.IsNullOrEmpty(ah))
                 {
-                    Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-                    await Response.OutputStream.WriteAsync(System.Text.Encoding.UTF8.GetBytes("{\"success\":false,\"status\":-401,\"message\":\"[-401]API端点需要认证\"}"));
-                    Response.Close();
-                    continue;
+                    res.StatusCode = 401;
+                    await res.OutputStream.WriteAsync(enc.GetBytes("{\"success\":false,\"status\":-401}"));
+                    res.Close(); continue;
                 }
-                if (!Request.Headers.Get("Authorization").StartsWith("Bearer ") || Request.Headers.Get("Authorization").Substring(7) != _token)
+                if (!ah.StartsWith("Bearer ") || ah[7..] != _token)
                 {
-                    Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                    await Response.OutputStream.WriteAsync(System.Text.Encoding.UTF8.GetBytes("{\"success\":false,\"status\":-403,\"message\":\"[-403]API端点认证失败\"}"));
-                    Response.Close();
-                    continue;
+                    res.StatusCode = 403;
+                    await res.OutputStream.WriteAsync(enc.GetBytes("{\"success\":false,\"status\":-403}"));
+                    res.Close(); continue;
                 }
             }
 
-            using (var Reader = new StreamReader(Request.InputStream, Request.ContentEncoding))
+            using var reader = new StreamReader(req.InputStream, req.ContentEncoding);
+            try
             {
-                Notification? notification;
-                try
-                {
-                    notification = JsonSerializer.Deserialize<Notification>(await Reader.ReadToEndAsync());
-                }
-                catch
-                {
-                    Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                    await Response.OutputStream.WriteAsync(System.Text.Encoding.UTF8.GetBytes("{\"success\":false,\"status\":-400,\"message\":\"[-400]传入内容应为JSON格式\"}"));
-                    Response.Close();
-                    continue;
-                }
-                NotificationReceived?.Invoke(this, new NotificationReceivedEventArgs() { notification = notification });
-                Response.StatusCode = (int)HttpStatusCode.OK;
-                await Response.OutputStream.WriteAsync(System.Text.Encoding.UTF8.GetBytes("{\"success\":true,\"status\":200,\"message\":\"[200]已推送到ClassIsland\"}"));
-                Response.Close();
+                var parsed = JsonSerializer.Deserialize<Notification>(await reader.ReadToEndAsync());
+                NotificationReceived?.Invoke(this, new NotificationReceivedEventArgs { Notification = parsed! });
+                res.StatusCode = 200;
+                await res.OutputStream.WriteAsync(enc.GetBytes("{\"success\":true,\"status\":200}"));
             }
+            catch
+            {
+                res.StatusCode = 400;
+                await res.OutputStream.WriteAsync(enc.GetBytes("{\"success\":false,\"status\":-400}"));
+            }
+            res.Close();
         }
     }
 
     public void Dispose()
     {
-        if (_listener.IsListening)
-        {
-            _listener.Stop();
-        }
-        _listener.Close();
+        Stop();
+        try { _httpListener.Close(); } catch { }
         Current = null;
     }
 }

@@ -1,0 +1,87 @@
+<ci:SettingsPageBase x:Class="cn.lixiaotuan.notifyisland2.Views.NotifyIslandSettingsPage"
+      xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ci="http://classisland.tech/schemas/xaml/core">
+    <ScrollViewer>
+        <StackPanel MaxWidth="750" Spacing="16" Margin="0 16">
+
+            <Border CornerRadius="8" Padding="16"
+                    Background="{DynamicResource SystemFillColorCriticalBackgroundBrush}"
+                    BorderBrush="{DynamicResource SystemFillColorCriticalBrush}"
+                    BorderThickness="1">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="安全提示"
+                               FontWeight="Bold" FontSize="15" />
+                    <TextBlock Text="API 密钥将在设置页面以明文形式显示。请在配置完毕后关闭此页面，勿将密钥泄露给他人。"
+                               TextWrapping="Wrap" FontSize="13" />
+                </StackPanel>
+            </Border>
+
+            <Border CornerRadius="8" Padding="16"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1">
+                <ci:Field Label="启用 API 服务">
+                    <StackPanel Spacing="8">
+                        <ToggleSwitch IsChecked="{Binding Plugin.Settings.Enabled, Mode=TwoWay}"
+                                      x:Name="EnabledSwitch" />
+                        <TextBlock Text="开启后 NotifyIsland2 将在指定接口上启动 HTTP 服务器，接收来自第三方的通知推送请求。"
+                                   TextWrapping="Wrap" FontSize="12"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                </ci:Field>
+            </Border>
+
+            <Border CornerRadius="8" Padding="16"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    IsEnabled="{Binding #EnabledSwitch.IsChecked}">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="网络配置" FontWeight="Bold" FontSize="15" />
+                    <ci:Field Label="监听地址">
+                        <StackPanel Spacing="4">
+                            <TextBox MinWidth="220"
+                                     Text="{Binding Plugin.Settings.Host, Mode=TwoWay}"
+                                     Watermark="默认：localhost（仅本机）" />
+                            <TextBlock Text="设置 HTTP 服务器监听的网络接口。localhost 仅本机可访问；* 或 + 监听所有接口需管理员权限。"
+                                       TextWrapping="Wrap" FontSize="12"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                    </ci:Field>
+                    <ci:Field Label="监听端口">
+                        <StackPanel Spacing="4">
+                            <TextBox MinWidth="220"
+                                     Text="{Binding Plugin.Settings.Port, Mode=TwoWay}"
+                                     Watermark="范围：1 ~ 65535" />
+                            <TextBlock Text="设置 HTTP 服务器监听的 TCP 端口号，有效范围为 1 至 65535。"
+                                       TextWrapping="Wrap" FontSize="12"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                    </ci:Field>
+                </StackPanel>
+            </Border>
+
+            <Border CornerRadius="8" Padding="16"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    IsEnabled="{Binding #EnabledSwitch.IsChecked}">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="安全配置" FontWeight="Bold" FontSize="15" />
+                    <ci:Field Label="API 密钥">
+                        <StackPanel Spacing="4">
+                            <TextBox MinWidth="220"
+                                     Text="{Binding Plugin.Settings.Token, Mode=TwoWay}"
+                                     Watermark="留空表示不启用认证" />
+                            <TextBlock Text="设置 Bearer Token 认证密钥。客户端请求 /api/notify 时需在 Authorization 头中携带此密钥。"
+                                       TextWrapping="Wrap" FontSize="12"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                    </ci:Field>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</ci:SettingsPageBase>
