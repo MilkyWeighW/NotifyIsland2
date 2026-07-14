@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("cn.lixiaotuan.notifyisland2")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c49362b7565466609014c53ab03daff3c8f9cca9")]
 [assembly: System.Reflection.AssemblyProductAttribute("cn.lixiaotuan.notifyisland2")]
 [assembly: System.Reflection.AssemblyTitleAttribute("cn.lixiaotuan.notifyisland2")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -5,7 +5,7 @@ using cn.lixiaotuan.notifyisland2.Services.NotificationAPIServer;
 
 namespace cn.lixiaotuan.notifyisland2.Services.NotificationProviders;
 
-[NotificationProviderInfo("534B80F5-8775-A978-95A3-F6A7BC5A1166", "API提醒", "Webhook", "通过HTTP接口触发的提醒。")]
+[NotificationProviderInfo("534B80F5-8775-A978-95A3-F6A7BC5A1166", "API提醒", "通过HTTP接口触发的提醒。")]
 public class APINotificationProvider : NotificationProviderBase
 {
     public Plugin Plugin { get; }

@@ -1,5 +1,4 @@
 D:\NotifyIsland2\bin\Release\net8.0-windows\icon.png
-D:\NotifyIsland2\bin\Release\net8.0-windows\LICENSE
 D:\NotifyIsland2\bin\Release\net8.0-windows\manifest.yml
 D:\NotifyIsland2\bin\Release\net8.0-windows\README.md
 D:\NotifyIsland2\bin\Release\net8.0-windows\cn.lixiaotuan.notifyisland2.deps.json
