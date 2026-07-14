@@ -1,5 +1,0 @@
-D:\NotifyIsland2\bin\Release\net8.0-windows\publish\icon.png
-D:\NotifyIsland2\bin\Release\net8.0-windows\publish\manifest.yml
-D:\NotifyIsland2\bin\Release\net8.0-windows\publish\README.md
-D:\NotifyIsland2\bin\Release\net8.0-windows\publish\cn.lixiaotuan.notifyisland2.dll
-D:\NotifyIsland2\bin\Release\net8.0-windows\publish\cn.lixiaotuan.notifyisland2.deps.json
