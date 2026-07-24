@@ -1,7 +1,7 @@
-id: cn.lixiaotuan.notifyisland2
-name: NotifyIsland2
+id: cn.lixiaotuan.notifyisland2_BatchRan
+name: NotifyIsland2_BatchRan
 description: 为ClassIsland提供一个触发通知的HTTP接口。
-entranceAssembly: "cn.lixiaotuan.notifyisland2.dll"
+entranceAssembly: "cn.lixiaotuan.notifyisland2_BatchRan.dll"
 url: https://github.com/AstralFlare-owo/NotifyIsland
 version: 2.0.1.0
 apiVersion: 2.0.0.0

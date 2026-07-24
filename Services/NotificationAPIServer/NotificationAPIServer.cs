@@ -2,7 +2,7 @@ using System.IO;
 using System.Net;
 using System.Text.Json;
 
-namespace cn.lixiaotuan.notifyisland2.Services.NotificationAPIServer;
+namespace cn.lixiaotuan.notifyisland2_BatchRan.Services.NotificationAPIServer;
 
 public class Notification
 {
@@ -30,7 +30,7 @@ public class NotificationAPIServer : IDisposable
     private readonly string _prefixUrl;
     private readonly string _token;
 
-    public NotificationAPIServer(string url = "http://localhost:1379/", string token = "")
+    public NotificationAPIServer(string url = "http://localhost:1380/", string token = "")
     {
         _prefixUrl = url.Replace("0.0.0.0", "*").Replace("[::]", "*");
         _token = token;

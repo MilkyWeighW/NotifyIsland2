@@ -5,11 +5,11 @@ using ClassIsland.Core.Extensions.Registry;
 using ClassIsland.Shared.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using cn.lixiaotuan.notifyisland2.Models;
-using cn.lixiaotuan.notifyisland2.Services.NotificationProviders;
-using cn.lixiaotuan.notifyisland2.Views;
+using cn.lixiaotuan.notifyisland2_BatchRan.Models;
+using cn.lixiaotuan.notifyisland2_BatchRan.Services.NotificationProviders;
+using cn.lixiaotuan.notifyisland2_BatchRan.Views;
 
-namespace cn.lixiaotuan.notifyisland2;
+namespace cn.lixiaotuan.notifyisland2_BatchRan;
 
 [PluginEntrance]
 public class Plugin : PluginBase

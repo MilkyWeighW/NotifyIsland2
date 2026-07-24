@@ -1,4 +1,4 @@
-<ci:SettingsPageBase x:Class="cn.lixiaotuan.notifyisland2.Views.NotifyIslandSettingsPage"
+<ci:SettingsPageBase x:Class="cn.lixiaotuan.notifyisland2_BatchRan.Views.NotifyIslandSettingsPage"
       xmlns="https://github.com/avaloniaui"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:ci="http://classisland.tech/schemas/xaml/core">

@@ -3,7 +3,7 @@ setlocal enabledelayedexpansion
 title NotifyIsland2 CIPX Build
 
 set "CURRENT_DIR=%~dp0"
-set "PROJECT=%CURRENT_DIR%cn.lixiaotuan.notifyisland2.csproj"
+set "PROJECT=%CURRENT_DIR%cn.lixiaotuan.notifyisland2_BatchRan.csproj"
 set "PWSH=C:\Program Files\PowerShell\7\pwsh.exe"
 
 if not exist "%PWSH%" (
@@ -32,11 +32,11 @@ if %ERRORLEVEL% neq 0 (
     exit /b 1
 )
 
-if exist "%CURRENT_DIR%cipx\cn.lixiaotuan.notifyisland2.cipx" (
+if exist "%CURRENT_DIR%cipx\cn.lixiaotuan.notifyisland2_BatchRan.cipx" (
     echo.
     echo ============================================
     echo   Build SUCCESS
-    echo   CIPX: cipx\cn.lixiaotuan.notifyisland2.cipx
+    echo   CIPX: cipx\cn.lixiaotuan.notifyisland2_BatchRan.cipx
     echo   Path: %CURRENT_DIR%cipx\
     echo ============================================
 ) else (

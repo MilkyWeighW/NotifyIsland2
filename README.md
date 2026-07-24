@@ -1,12 +1,13 @@
-# NotifyIsland2
+# NotifyIsland2_BatchRan
 
+BatchRan 专用耦合版本
 ClassIsland 2 的提醒功能与第三方通知服务集成，通过 HTTP API 触发提醒。
 
 ## 使用方式
 
 1. 安装插件并重启 ClassIsland
 2. 打开 **调试菜单** → **NotifyIsland2**
-3. 配置监听地址和端口（默认 `localhost:1379`）
+3. 配置监听地址和端口（默认 `localhost:1380`）
 4. 打开 **启用 API 服务** 开关，搞定！🎉
 5. （推荐）设置 API 密钥，配置完毕后关闭设置页面
 

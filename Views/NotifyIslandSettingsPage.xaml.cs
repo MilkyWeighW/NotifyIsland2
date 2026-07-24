@@ -2,7 +2,7 @@ using ClassIsland.Core.Abstractions.Controls;
 using ClassIsland.Core.Attributes;
 using ClassIsland.Core.Enums.SettingsWindow;
 
-namespace cn.lixiaotuan.notifyisland2.Views;
+namespace cn.lixiaotuan.notifyisland2_BatchRan.Views;
 
 [SettingsPageInfo("notifyisland.settingspage", "NotifyIsland2", category: SettingsPageCategory.Debug)]
 public partial class NotifyIslandSettingsPage : SettingsPageBase
